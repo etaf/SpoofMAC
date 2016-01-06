@@ -51,6 +51,7 @@ def list_interfaces():
     except NotImplementedError:
         return UNSUPPORTED_PLATFORM
 
+    print (Fore.GREEN +'\n*********************\n')
     for port, device, address, current_address in spoofer.find_interfaces():
         line = []
         line.append('- "{port}"'.format(port=port))
@@ -59,11 +60,10 @@ def list_interfaces():
             line.append('with MAC address {mac}'.format(mac=address))
         if current_address and address != current_address:
             line.append('currently set to {mac}'.format(mac=current_address))
-        print (Fore.GREEN +'\n*********************\n')
         print( ' '.join(line))
-        print '\n*********************\n'
-        print(Style.RESET_ALL)
 
+    print '\n*********************\n'
+    print(Style.RESET_ALL)
 def check_root_or_admin():
     try:
         root_or_admin = os.geteuid() == 0
