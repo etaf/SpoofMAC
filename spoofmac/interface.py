@@ -40,6 +40,8 @@ class OsSpoofer(object):
     def set_interface_mac(self, device, mac, port=None):
         raise NotImplementedError("set_interface_mac must be implemented")
 
+    def reconnect_wifi(self, device, wifi_name):
+        raise NotImplementedError("reconnect_wifi must be implemented")
 
 class LinuxSpooferIP(OsSpoofer):
     """
@@ -195,6 +197,9 @@ class LinuxSpoofer(OsSpoofer):
         # turn on device
         cmd = "ifconfig {} up".format(device)
         subprocess.call(cmd.split())
+
+    def reconnect_wifi(self, device, wifi_name):
+        subprocess.check_output = check_output("iwconfig {} essid {}".format(device, wifi_name), shell=True)
 
 class WindowsSpoofer(OsSpoofer):
     """
@@ -362,6 +367,8 @@ class WindowsSpoofer(OsSpoofer):
 
         # Adapter must be restarted in order for change to take affect
         self.restart_adapter(adapter_name)
+    def reconnect_wifi(self, device, wifi_name):
+        subprocess.check_output = check_output("netsh {} connect {}".format(device, wifi_name), shell=True)
 
 
 class MacSpoofer(OsSpoofer):
@@ -481,6 +488,9 @@ class MacSpoofer(OsSpoofer):
 
         return address
 
+    def reconnect_wifi(self, device, wifi_name):
+        subprocess.check_output = check_output("networksetup -setairportnetwork {} {}".format(device, wifi_name), shell=True)
+
 
 def get_os_spoofer():
     """
@@ -538,3 +548,12 @@ def set_interface_mac(device, mac, port=None):
     # Wrapper to interface handles encapsulating objects
     spoofer = get_os_spoofer()
     spoofer.set_interface_mac(device, mac, port)
+def reconnect_wifi(device, wifi_name):
+    """
+    Reconnect to a wifi network
+    Device varies by platform:
+        MacOS & Linux this is the interface name in ifconfig or ip
+        Windows this is the network adapter name in ipconfig
+    """
+    spoofer = get_os_spoofer()
+    spoofer.reconnect_wifi()_
