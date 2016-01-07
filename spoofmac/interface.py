@@ -127,7 +127,7 @@ class LinuxSpooferIP(OsSpoofer):
         try:
             output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
             return True
-        except CalledProcessError as err:
+        except subprocess.CalledProcessError as err:
             return False
 
 
@@ -210,7 +210,7 @@ class LinuxSpoofer(OsSpoofer):
         try:
             output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
             return True
-        except CalledProcessError as err:
+        except subprocess.CalledProcessError as err:
             return False
 
 
@@ -385,7 +385,7 @@ class WindowsSpoofer(OsSpoofer):
         try:
             output = subprocess.check_output("netsh wlan connect {}".format(wifi_name), shell=True)
             return True
-        except CalledProcessError as err:
+        except subprocess.CalledProcessError as err:
             return False
 
 class MacSpoofer(OsSpoofer):
@@ -509,7 +509,7 @@ class MacSpoofer(OsSpoofer):
         try:
             output = subprocess.check_output("networksetup -setairportnetwork {} {}".format(device, wifi_name), shell=True)
             return True
-        except CalledProcessError as err:
+        except subprocess.CalledProcessError as err:
             return False
 
 
