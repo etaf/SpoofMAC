@@ -14,9 +14,9 @@ if sys.platform == 'win32': import ctypes
 from colorama import init
 init()
 from colorama import Fore, Back, Style
-COLOR_INFO = Fore.WHITE
+COLOR_INFO = ''
 COLOR_ERROR = Fore.RED
-COLOR_SUCCESS = Fore.BLUE
+COLOR_SUCCESS = Fore.GREEN
 
 from spoofmac.util import random_mac_address, MAC_ADDRESS_R
 from spoofmac.interface import (
@@ -44,7 +44,7 @@ def internet_on():
     try:
         _ = requests.get("https://google.com", timeout=3)
         return True
-    except requests.ConnectionError:
+    except requests.exceptions.RequestException:
         print(COLOR_ERROR + "No internet access")
     return False
 
@@ -54,7 +54,7 @@ def list_interfaces():
     except NotImplementedError:
         return UNSUPPORTED_PLATFORM
 
-    print '{0:^80}'.format(COLOR_INFO +'****** list of your network interfaces ******')
+    print COLOR_INFO +'****** list of your network interfaces ******'
     for port, device, address, current_address in spoofer.find_interfaces():
         line = []
         line.append('- "{port}"'.format(port=port))
@@ -63,9 +63,9 @@ def list_interfaces():
             line.append('with MAC address {mac}'.format(mac=address))
         if current_address and address != current_address:
             line.append('currently set to {mac}'.format(mac=current_address))
-        print('{0:80}'.format( ' '.join(line)))
+        print(' '.join(line))
 
-    print '{0:^80}'.format(COLOR_INFO + '***************** end list *****************')
+    print COLOR_INFO + '***************** end list *****************'
 
 def check_root_or_admin():
     try:
@@ -74,10 +74,10 @@ def check_root_or_admin():
         root_or_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     if not root_or_admin:
         if sys.platform == 'win32':
-            print('{0:80}'.format(COLOR_ERROR + 'Error: Must run this with administrative privileges to set MAC addresses'))
+            print(COLOR_ERROR + 'Error: Must run this with administrative privileges to set MAC addresses')
             return False
         else:
-            print('{0:80}'.format(COLOR_ERROR + 'Error: Must run this as root (or with sudo) to set MAC addresses'))
+            print(COLOR_ERROR + 'Error: Must run this as root (or with sudo) to set MAC addresses')
 
             return False
     return True
@@ -100,38 +100,38 @@ def try_once(target, wifi_name):
         target_mac = random_mac_address()
 
     # set mac address
-    print '{0:80}'.format(COLOR_INFO + 'Seting MAC address for device ' + device + '...' )
+    print COLOR_INFO + 'Seting MAC address for device ' + device + '...'
     set_interface_mac(device, target_mac, port)
     time.sleep(3)
-    print '{0:80}'.format(COLOR_INFO + "Done.")
+    print COLOR_INFO + "Done."
 
     # reconnect wifi
-    print '{0:80}'.format(Fore.WHITE + 'Reconnecting wifi..')
+    print Fore.WHITE + 'Reconnecting wifi..'
     wait_second = 3
     while not reconnect_wifi(device, wifi_name):
-        print '{0:80}'.format(COLOR_ERROR + 'Faild, Auto reconnect after {} ...'.format(wait_second) )
+        print COLOR_ERROR + 'Faild, Auto reconnect after {} seconds ...'.format(wait_second)
         time.sleep(wait_second)
         wait_second += wait_second
     time.sleep(5)
-    print '{0:80}'.format(COLOR_INFO + "Done.")
+    print COLOR_INFO + "Done."
 
     # test network
-    print '{0:80}'.format(Fore.WHITE + "Testing network access...")
+    print Fore.WHITE + "Testing network access..."
     wait_second = 3
     while not internet_on():
         time.sleep(wait_second)
         wait_second += wait_second
-    print '{0:80}'.format(COLOR_INFO + 'Done.')
+    print COLOR_INFO + 'Done.'
 
     #print Fore.CYAN + 'Previous MAC address:\t', address
     #print Fore.GREEN +'Current MAC address:\t', target_mac
     # raw_input(Fore.CYAN + 'Manually reconnect the wifi and press any key to continue.\t')
-    print '{0:80}'.format(Fore.WHITE + "Try login in .....")
+    print Fore.WHITE + "Try login in ....."
     try_times = 3
     for i in xrange(try_times):
         if try_network(target_mac):
             return True
-        print '{0:80}'.format(COLOR_ERROR + "Failed, Auto try again...")
+        print COLOR_ERROR + "Failed, Auto try again..."
     return False
 
 # href="https://xfinity.nnu.com/xfinitywifi/?client-mac=48:d7:05:c1:8d:8b"
@@ -139,8 +139,8 @@ def try_network(mac_addr):
     # get cookies
     get_url = 'https://xfinity.nnu.com/xfinitywifi/?client-mac=' + mac_addr
     try:
-        r = requests.get(get_url)
-    except requests.ConnectionError, e:
+        r = requests.get(get_url, timeout = 3)
+    except requests.exceptions.RequestException, e:
         print COLOR_ERROR,e
         #print(Style.RESET_ALL)
         return False
@@ -160,8 +160,8 @@ def try_network(mac_addr):
     post_data = "rateplanid=spn&spn_postal="+spn_postal+"&spn_email="+spn_email+"&spn_terms=1&username=&password1=&password2=&firstname=&lastname=&email=&cardnumber=&ccv=&expmm="+expmm+"&expyy="+expyy+"&billcountry=&billstate=&billpostal="
     post_url = 'https://xfinity.nnu.com/xfinitywifi/signup/validate'
     try:
-        r = requests.post(post_url, data = post_data, cookies = cookies)
-    except requests.ConnectionError, e:
+        r = requests.post(post_url, data = post_data, cookies = cookies, timeout = 3)
+    except requests.exceptions.RequestException, e:
         print COLOR_ERROR,e
         print(Style.RESET_ALL)
         return False
@@ -175,35 +175,36 @@ def try_network(mac_addr):
     login_url = 'https://xfinity.nnu.com/xfinitywifi/signup?loginid='+str(login_id)
     try:
         r = requests.get(login_url,
-                    cookies = cookies
+                    cookies = cookies,
+                         timeout = 3
                      )
-    except requests.ConnectionError, e:
+    except requests.exceptions.RequestException, e:
         print COLOR_ERROR,e
         print(Style.RESET_ALL)
         return False
 
     json_data = json.loads(r.text)
     while not json_data['status'] == "done":
-        print '{0:80}'.format(COLOR_ERROR + "Pending ...")
+        print COLOR_ERROR + "Pending ..."
         #print(Style.RESET_ALL)
         try:
-            r = requests.get(login_url, cookies = cookies)
-        except requests.ConnectionError, e:
+            r = requests.get(login_url, cookies = cookies, timeout = 3)
+        except requests.exceptions.RequestException, e:
             print COLOR_ERROR ,e
             #print(Style.RESET_ALL)
             return False
         json_data = json.loads(r.text)
 
     if json_data["response"] and json_data["response"]["success"] and json_data["response"]["success"] == 1:
-        print '{0:80}'.format(COLOR_INFO+"Login successfully!")
-        print '{0:80}'.format(COLOR_INFO+"The MAC address will automaticlly changed in next hour.")
+        print COLOR_INFO+"Login successfully!"
+        print COLOR_INFO+"The MAC address will automaticlly changed in next hour."
         print(Style.RESET_ALL)
         return True
     return False
 
 def main():
 
-    print Back.GREEN
+    #print Back.GREEN
     # list all interface
     list_interfaces()
 
@@ -216,12 +217,12 @@ def main():
     while True:
         try:
             while not try_once(target, wifi_name):
-                print '{0:80}'.format(COLOR_ERROR + "Retrying after 3 seconds....")
+                print COLOR_ERROR + "Retrying after 3 seconds...."
                 #print(Style.RESET_ALL)
                 time.sleep(3)
             time.sleep(60*60-10)
         except KeyboardInterrupt:
-            print '{0:80}'.format(Back.BLUE + Fore.WHITE + "------------Bye-------------")
+            print Back.BLUE + Fore.WHITE + "------------Bye-------------"
             print(Style.RESET_ALL)
             sys.exit(0)
 
