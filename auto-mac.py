@@ -99,7 +99,11 @@ def try_once(target):
     print Fore.BLUE + 'Seting MAC address for device ' + device + '...'
     set_interface_mac(device, target_mac, port)
     print Fore.BLUE + 'Reconnecting wifi..'
-    reconnect_wifi(device,'xfinity')
+    time.sleep(1)
+    while not reconnect_wifi(device,'xfinity'):
+        print Fore.RED + 'Reconnecting wifi..'
+        time.sleep(1)
+    print(Style.RESET_ALL)
     time.sleep(3)
 #     while not internet_on():
         # time.sleep(2)

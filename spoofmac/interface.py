@@ -124,7 +124,12 @@ class LinuxSpooferIP(OsSpoofer):
         subprocess.call(cmd.split())
 
     def reconnect_wifi(self, device, wifi_name):
-        output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
+        try:
+            output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
+            return True
+        except CalledProcessError as err:
+            return False
+
 
 class LinuxSpoofer(OsSpoofer):
     """
@@ -202,7 +207,12 @@ class LinuxSpoofer(OsSpoofer):
         subprocess.call(cmd.split())
 
     def reconnect_wifi(self, device, wifi_name):
-        output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
+        try:
+            output = subprocess.check_output("nmcli dev wifi connect {} ".format(wifi_name), shell=True)
+            return True
+        except CalledProcessError as err:
+            return False
+
 
 class WindowsSpoofer(OsSpoofer):
     """
@@ -372,7 +382,11 @@ class WindowsSpoofer(OsSpoofer):
         self.restart_adapter(adapter_name)
 
     def reconnect_wifi(self, device, wifi_name):
-        output = subprocess.check_output("netsh {} connect {}".format(device, wifi_name), shell=True)
+        try:
+            output = subprocess.check_output("netsh wlan connect {}".format(wifi_name), shell=True)
+            return True
+        except CalledProcessError as err:
+            return False
 
 class MacSpoofer(OsSpoofer):
     """
@@ -492,7 +506,12 @@ class MacSpoofer(OsSpoofer):
         return address
 
     def reconnect_wifi(self, device, wifi_name):
-        output = subprocess.check_output("networksetup -setairportnetwork {} {}".format(device, wifi_name), shell=True)
+        try:
+            output = subprocess.check_output("networksetup -setairportnetwork {} {}".format(device, wifi_name), shell=True)
+            return True
+        except CalledProcessError as err:
+            return False
+
 
 def get_os_spoofer():
     """
@@ -559,5 +578,5 @@ def reconnect_wifi(device, wifi_name):
         Windows this is the network adapter name in ipconfig
     """
     spoofer = get_os_spoofer()
-    spoofer.reconnect_wifi(device, wifi_name)
+    return spoofer.reconnect_wifi(device, wifi_name)
 
