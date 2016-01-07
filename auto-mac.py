@@ -22,7 +22,8 @@ from spoofmac.interface import (
     find_interfaces,
     find_interface,
     set_interface_mac,
-    get_os_spoofer
+    get_os_spoofer,
+    reconnect_wifi
 )
 
 
@@ -51,7 +52,7 @@ def list_interfaces():
     except NotImplementedError:
         return UNSUPPORTED_PLATFORM
 
-    print (Fore.GREEN +'\n*********************\n')
+    print (Fore.GREEN +'\n*******list of your network interfaces**************\n')
     for port, device, address, current_address in spoofer.find_interfaces():
         line = []
         line.append('- "{port}"'.format(port=port))
@@ -95,15 +96,18 @@ def try_once(target):
         ))
         target_mac = random_mac_address()
 
-    set_interface_mac(device, target_mac, port)
     print Fore.BLUE + 'Seting MAC address for device ' + device + '...'
-    time.sleep(10)
-#    while not internet_on():
-        #time.sleep(2)
+    set_interface_mac(device, target_mac, port)
+    print Fore.BLUE + 'Reconnecting wifi..'
+    reconnect_wifi(device,'xfinity')
+    time.sleep(3)
+#     while not internet_on():
+        # time.sleep(2)
     print Fore.GREEN + 'Done'
     print Fore.CYAN + 'Previous MAC address:\t', address
     print Fore.GREEN +'Current MAC address:\t', target_mac
-    raw_input(Fore.CYAN + 'Manually reconnect the wifi and press any key to continue.\t')
+    # raw_input(Fore.CYAN + 'Manually reconnect the wifi and press any key to continue.\t')
+    print Fore.BLUE + "Try login in ....."
     print(Style.RESET_ALL)
     return try_network(target_mac)
 
@@ -137,6 +141,7 @@ def try_network(mac_addr):
 
     #sign up
     # https://xfinity.nnu.com/xfinitywifi/signup?loginid=1452042007
+    time.sleep(1)
     login_id = int(time.time())
     login_url = 'https://xfinity.nnu.com/xfinitywifi/signup?loginid='+str(login_id)
     try:
@@ -150,6 +155,8 @@ def try_network(mac_addr):
 
     json_data = json.loads(r.text)
     while not json_data['status'] == "done":
+        print Fore.RED + "Try login in ..."
+        print(Style.RESET_ALL)
         try:
             r = requests.get(login_url, cookies = cookies)
         except requests.ConnectionError, e:
@@ -173,13 +180,12 @@ def main():
     while True:
         try:
             while not try_once(target):
-                print Fore.RED+"retrying"
+                print Fore.RED+"retrying...."
                 print(Style.RESET_ALL)
                 time.sleep(1)
-            #time.sleep(60*60-10)
-            time.sleep(30)
+            time.sleep(60*60-10)
         except KeyboardInterrupt:
-            print Back.CYAN + Fore.WHITE + "\n------------Bye~."
+            print Back.CYAN + Fore.WHITE + "\n------------Bye-------------"
             print(Style.RESET_ALL)
             sys.exit(0)
 
