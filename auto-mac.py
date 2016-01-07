@@ -125,21 +125,37 @@ def try_network(mac_addr):
                 '.' + \
                 ''.join(choice(ascii_lowercase) for i in range(3))
     post_data = "rateplanid=spn&spn_postal="+spn_postal+"&spn_email="+spn_email+"&spn_terms=1&username=&password1=&password2=&firstname=&lastname=&email=&cardnumber=&ccv=&expmm="+expmm+"&expyy="+expyy+"&billcountry=&billstate=&billpostal="
-    r = requests.post('https://xfinity.nnu.com/xfinitywifi/signup/validate', data = post_data, cookies = cookies)
+    post_url = 'https://xfinity.nnu.com/xfinitywifi/signup/validate'
+    try:
+        r = requests.post(post_url, data = post_data, cookies = cookies)
+    except requests.ConnectionError, e:
+        print Fore.RED,e
+        print(Style.RESET_ALL)
+        return False
+
     #print "validate response:\n", r.text
 
     #sign up
     # https://xfinity.nnu.com/xfinitywifi/signup?loginid=1452042007
     login_id = int(time.time())
     login_url = 'https://xfinity.nnu.com/xfinitywifi/signup?loginid='+str(login_id)
-    r = requests.get(login_url,
-                    cookies = cookies
-                     )
-    json_data = json.loads(r.text)
-    while not json_data['status'] == "done":
+    try:
         r = requests.get(login_url,
                     cookies = cookies
                      )
+    except requests.ConnectionError, e:
+        print Fore.RED,e
+        print(Style.RESET_ALL)
+        return False
+
+    json_data = json.loads(r.text)
+    while not json_data['status'] == "done":
+        try:
+            r = requests.get(login_url, cookies = cookies)
+        except requests.ConnectionError, e:
+            print Fore.RED,e
+            print(Style.RESET_ALL)
+            return False
         json_data = json.loads(r.text)
 
     if json_data["response"] and json_data["response"]["success"] and json_data["response"]["success"] == 1:
@@ -160,7 +176,8 @@ def main():
                 print Fore.RED+"retrying"
                 print(Style.RESET_ALL)
                 time.sleep(1)
-            time.sleep(60*60-10)
+            #time.sleep(60*60-10)
+            time.sleep(30)
         except KeyboardInterrupt:
             print Back.CYAN + Fore.WHITE + "\n------------Bye~."
             print(Style.RESET_ALL)
