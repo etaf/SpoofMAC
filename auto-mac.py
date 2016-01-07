@@ -97,7 +97,7 @@ def try_once(target):
 
     set_interface_mac(device, target_mac, port)
     print Fore.BLUE + 'Seting MAC address for device ' + device + '...'
-    time.sleep(5)
+    time.sleep(10)
 #    while not internet_on():
         #time.sleep(2)
     print Fore.GREEN + 'Done'
@@ -159,7 +159,8 @@ def main():
             while not try_once(target):
                 print Fore.RED+"retrying"
                 print(Style.RESET_ALL)
-            time.sleep(30)
+                time.sleep(1)
+            time.sleep(60*60-10)
         except KeyboardInterrupt:
             print Back.CYAN + Fore.WHITE + "\n------------Bye~."
             print(Style.RESET_ALL)
