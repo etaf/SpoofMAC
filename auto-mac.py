@@ -97,12 +97,13 @@ def try_once(target):
 
     set_interface_mac(device, target_mac, port)
     print Fore.BLUE + 'Seting MAC address for device ' + device + '...'
-    time.sleep(10)
+    time.sleep(5)
 #    while not internet_on():
         #time.sleep(2)
     print Fore.GREEN + 'Done'
     print Fore.CYAN + 'Previous MAC address:\t', address
     print Fore.GREEN +'Current MAC address:\t', target_mac
+    raw_input(Fore.CYAN + 'Manually reconnect the wifi and press any key to continue.\t')
     print(Style.RESET_ALL)
     return try_network(target_mac)
 
