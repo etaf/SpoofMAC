@@ -217,7 +217,7 @@ def main():
     # get target device
     target = raw_input(Fore.WHITE + "Please input the device name which you want to modify the MAC address :\t")
 
-    wifi_name = "xfinity"
+    wifi_name = "xfinitywifi"
 
     # login every hour.
     while True:
